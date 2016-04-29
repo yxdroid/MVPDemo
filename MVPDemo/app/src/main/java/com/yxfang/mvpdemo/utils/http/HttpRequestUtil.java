@@ -2,6 +2,8 @@ package com.yxfang.mvpdemo.utils.http;
 
 import android.content.Context;
 import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
 import android.support.annotation.Nullable;
 
 import java.io.IOException;
@@ -23,7 +25,9 @@ public class HttpRequestUtil
 {
     private static HttpRequestUtil instance;
 
-    private static OkHttpClient okHttpClient = new OkHttpClient();
+    private static OkHttpClient okHttpClient;
+
+    private HttpHandler httpHandler;
 
     public static synchronized HttpRequestUtil getInstance()
     {
@@ -35,6 +39,12 @@ public class HttpRequestUtil
             }
         }
         return instance;
+    }
+
+    public HttpRequestUtil()
+    {
+        okHttpClient = new OkHttpClient();
+        httpHandler = new HttpHandler(Looper.getMainLooper());
     }
 
     /**
@@ -109,15 +119,11 @@ public class HttpRequestUtil
             {
                 if (callback != null)
                 {
-                    new Handler(context.getMainLooper()).post(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            callback.onFailure(call, e);
-                            callback.onFinish();
-                        }
-                    });
+                    HttpResult httpResult = new HttpResult(HttpHandler.HTTP_FAILURE);
+                    httpResult.callback = callback;
+                    httpResult.exception = e;
+                    httpResult.call = call;
+                    httpHandler.sendMessage(httpResult.getMessage());
                 }
             }
 
@@ -126,23 +132,71 @@ public class HttpRequestUtil
             {
                 if (callback != null)
                 {
-                    new Handler(context.getMainLooper()).post(new Runnable()
-                    {
-                        @Override
-                        public void run()
-                        {
-                            try
-                            {
-                                callback.onResponse(call, response);
-                            }
-                            catch (IOException e)
-                            {
-                            }
-                            callback.onFinish();
-                        }
-                    });
+                    HttpResult httpResult = new HttpResult(HttpHandler.HTTP_SUCCESS);
+                    httpResult.callback = callback;
+                    httpResult.call = call;
+                    httpResult.response = response;
+                    httpHandler.sendMessage(httpResult.getMessage());
                 }
             }
         };
+    }
+
+    class HttpHandler extends Handler
+    {
+        public static final int HTTP_SUCCESS = 1;
+        public static final int HTTP_FAILURE = 2;
+
+        public HttpHandler(Looper looper)
+        {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg)
+        {
+            HttpResult httpResult = (HttpResult) msg.obj;
+            if (msg.what == HTTP_SUCCESS)
+            {
+                try
+                {
+                    httpResult.callback.onResponse(httpResult.call, httpResult.response);
+                }
+                catch (IOException e)
+                {
+                }
+                httpResult.callback.onFinish();
+            }
+            else
+            {
+                httpResult.callback.onFailure(httpResult.call, httpResult.exception);
+                httpResult.callback.onFinish();
+            }
+        }
+    }
+
+    class HttpResult
+    {
+        private HttpRequestCallback callback;
+        private Response response;
+        private IOException exception;
+        private Call call;
+        private int what;
+
+        private Message msg;
+
+        public HttpResult(int what)
+        {
+            this.msg = new Message();
+            this.what = what;
+        }
+
+        public Message getMessage()
+        {
+            this.msg.what = what;
+            msg.obj = this;
+            return msg;
+
+        }
     }
 }
