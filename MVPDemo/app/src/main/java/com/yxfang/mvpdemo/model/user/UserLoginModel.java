@@ -23,4 +23,10 @@ public class UserLoginModel extends BaseModel implements IUserLoginModel
         params.put("pwd", pwd);
         sendPostRequest(context, USER_LOGIN, params, callBack);
     }
+
+    @Override
+    public void getUserList(Context context, HttpRequestCallback callback)
+    {
+        sendGetRequest(context, GET_USER_LIST, callback);
+    }
 }

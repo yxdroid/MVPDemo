@@ -34,4 +34,5 @@ dependencies {
     compile 'com.alibaba:fastjson:1.2.6'
     compile 'com.loopj.android:android-async-http:1.4.6'
     compile files('libs/lombok-1.12.6.jar')
+    compile 'com.google.code.gson:gson:2.6.2'
 }

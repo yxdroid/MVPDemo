@@ -14,4 +14,6 @@ import com.yxfang.mvpdemo.utils.http.HttpRequestCallback;
 public interface IUserLoginModel
 {
     void userLogin(Context context, String account, String pwd, HttpRequestCallback callBack);
+
+    void getUserList(Context context, HttpRequestCallback callback);
 }

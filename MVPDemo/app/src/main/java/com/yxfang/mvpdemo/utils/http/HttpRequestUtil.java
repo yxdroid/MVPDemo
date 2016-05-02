@@ -5,10 +5,14 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.Nullable;
+import android.util.Log;
+
+import com.google.gson.Gson;
 
 import java.io.IOException;
 
 import okhttp3.Call;
+import okhttp3.Callback;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -23,11 +27,15 @@ import okhttp3.Response;
  */
 public class HttpRequestUtil
 {
+    private static final String TAG = "HttpRequestUtil";
+
     private static HttpRequestUtil instance;
 
     private static OkHttpClient okHttpClient;
 
     private HttpHandler httpHandler;
+
+    private Gson gson;
 
     public static synchronized HttpRequestUtil getInstance()
     {
@@ -45,6 +53,7 @@ public class HttpRequestUtil
     {
         okHttpClient = new OkHttpClient();
         httpHandler = new HttpHandler(Looper.getMainLooper());
+        gson = new Gson();
     }
 
     /**
@@ -55,7 +64,7 @@ public class HttpRequestUtil
      */
     public void getRequest(Context context, String url, final HttpRequestCallback callback)
     {
-        Request request = new Request.Builder().tag(getTagByContext(context)).url(url).build();
+        Request request = new Request.Builder().tag(getTagByContext(context)).url(url).get().build();
         okHttpClient.newCall(request).enqueue(getCallback(context, callback));
     }
 
@@ -92,51 +101,50 @@ public class HttpRequestUtil
      * @param callback
      * @return
      */
-    private HttpRequestCallback getCallback(final Context context, final HttpRequestCallback callback)
+    private Callback getCallback(final Context context, final HttpRequestCallback callback)
     {
-        return new HttpRequestCallback()
+        if (callback != null)
         {
-            @Override
-            public void onStart()
-            {
-                if (callback != null)
-                {
-                    callback.onStart();
-                }
-            }
+            callback.onStart();
+        }
+
+        return new Callback()
+        {
 
             @Override
-            public void onFinish()
-            {
-                if (callback != null)
-                {
-                    callback.onFinish();
-                }
-            }
-
-            @Override
-            public void onFailure(final Call call, final IOException e)
+            public void onFailure(Call call, IOException e)
             {
                 if (callback != null)
                 {
                     HttpResult httpResult = new HttpResult(HttpHandler.HTTP_FAILURE);
                     httpResult.callback = callback;
-                    httpResult.exception = e;
+                    httpResult.exception = new HttpException(e);
                     httpResult.call = call;
                     httpHandler.sendMessage(httpResult.getMessage());
                 }
             }
 
             @Override
-            public void onResponse(final Call call, final Response response) throws IOException
+            public void onResponse(Call call, Response response) throws IOException
             {
                 if (callback != null)
                 {
-                    HttpResult httpResult = new HttpResult(HttpHandler.HTTP_SUCCESS);
-                    httpResult.callback = callback;
-                    httpResult.call = call;
-                    httpResult.response = response;
-                    httpHandler.sendMessage(httpResult.getMessage());
+                    if (response.code() == 200)
+                    {
+                        HttpResult httpResult = new HttpResult(HttpHandler.HTTP_SUCCESS);
+                        httpResult.callback = callback;
+                        httpResult.response = response.body().string();
+                        httpResult.call = call;
+                        httpHandler.sendMessage(httpResult.getMessage());
+                    }
+                    else
+                    {
+                        HttpResult httpResult = new HttpResult(HttpHandler.HTTP_FAILURE);
+                        httpResult.callback = callback;
+                        httpResult.call = call;
+                        httpResult.exception = new HttpException(response.code());
+                        httpHandler.handleMessage(httpResult.getMessage());
+                    }
                 }
             }
         };
@@ -158,28 +166,39 @@ public class HttpRequestUtil
             HttpResult httpResult = (HttpResult) msg.obj;
             if (msg.what == HTTP_SUCCESS)
             {
-                try
+                // 当返回的类型是String
+                if (httpResult.callback.type == String.class)
                 {
-                    httpResult.callback.onResponse(httpResult.call, httpResult.response);
+                    httpResult.callback.onResponse(httpResult.response);
                 }
-                catch (IOException e)
+                else
                 {
+                    try
+                    {
+                        Object obj = gson.fromJson(httpResult.response, httpResult.callback.type);
+                        httpResult.callback.onResponse(obj);
+                    }
+                    catch (Exception e)
+                    {
+                        Log.e(TAG, httpResult.response);
+                        // 解析异常
+                        httpResult.callback.onFailure(httpResult.call, new HttpException(HttpException.EXCEPTION_DATA));
+                    }
                 }
-                httpResult.callback.onFinish();
             }
             else
             {
                 httpResult.callback.onFailure(httpResult.call, httpResult.exception);
-                httpResult.callback.onFinish();
             }
+            httpResult.callback.onFinish();
         }
     }
 
     class HttpResult
     {
         private HttpRequestCallback callback;
-        private Response response;
-        private IOException exception;
+        private String response;
+        private HttpException exception;
         private Call call;
         private int what;
 

@@ -1,6 +1,10 @@
 package com.yxfang.mvpdemo.view.user;
 
+import com.yxfang.mvpdemo.bean.common.Result;
+import com.yxfang.mvpdemo.bean.user.User;
 import com.yxfang.mvpdemo.view.base.IBaseView;
+
+import java.util.List;
 
 /**
  * User: yxfang
@@ -24,4 +28,6 @@ public interface IUserLoginView extends IBaseView
      * @return
      */
     String getPwd();
+
+    void getUserList(Result<List<User>> userList);
 }

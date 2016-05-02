@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.widget.Toast;
 
 import com.yxfang.mvpdemo.bean.common.Result;
+import com.yxfang.mvpdemo.bean.user.User;
 
 import butterknife.ButterKnife;
 
@@ -63,7 +64,8 @@ public abstract class BaseActivity extends AppCompatActivity implements IBaseVie
     @Override
     public void loadSuccess(Result result)
     {
-
+        User user = (User) result.getData();
+        showTip(user.getUsername());
     }
 
     @Override

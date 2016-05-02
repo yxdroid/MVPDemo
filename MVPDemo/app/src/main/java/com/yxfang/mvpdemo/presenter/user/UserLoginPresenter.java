@@ -2,20 +2,19 @@ package com.yxfang.mvpdemo.presenter.user;
 
 import android.content.Context;
 
-import com.alibaba.fastjson.TypeReference;
 import com.yxfang.mvpdemo.bean.common.Result;
 import com.yxfang.mvpdemo.bean.user.User;
 import com.yxfang.mvpdemo.model.user.IUserLoginModel;
 import com.yxfang.mvpdemo.model.user.UserLoginModel;
 import com.yxfang.mvpdemo.presenter.BasePresenter;
-import com.yxfang.mvpdemo.utils.http.HttpRequestCallback;
 import com.yxfang.mvpdemo.utils.StringUtil;
+import com.yxfang.mvpdemo.utils.http.HttpException;
+import com.yxfang.mvpdemo.utils.http.HttpRequestCallback;
 import com.yxfang.mvpdemo.view.user.IUserLoginView;
 
-import java.io.IOException;
+import java.util.List;
 
 import okhttp3.Call;
-import okhttp3.Response;
 
 /**
  * User: yxfang
@@ -57,8 +56,9 @@ public class UserLoginPresenter extends BasePresenter
             return;
         }
 
-        userLoginModel.userLogin(context, account, pwd, new HttpRequestCallback()
+        userLoginModel.userLogin(context, account, pwd, new HttpRequestCallback<Result<User>>()
         {
+
 
             @Override
             public void onStart()
@@ -73,17 +73,45 @@ public class UserLoginPresenter extends BasePresenter
             }
 
             @Override
-            public void onFailure(Call call, IOException e)
+            public void onResponse(Result<User> user)
             {
-                handleOnFailure(e, userLoginView);
+                //.loadSuccess(user/);
+                userLoginView.loadSuccess(user);
             }
 
             @Override
-            public void onResponse(Call call, Response response) throws IOException
+            public void onFailure(Call call, HttpException e)
             {
-                handleOnResponse(response, new TypeReference<Result<User>>()
-                {
-                }, userLoginView);
+                userLoginView.showTip(e.getMessage());
+            }
+        });
+    }
+
+    public void getUserList(Context context) {
+        userLoginModel.getUserList(context, new HttpRequestCallback<Result<List<User>>>()
+        {
+            @Override
+            public void onStart()
+            {
+                userLoginView.showLoadingDialog();
+            }
+
+            @Override
+            public void onFinish()
+            {
+                userLoginView.closeLoadingDialog();
+            }
+
+            @Override
+            public void onResponse(Result<List<User>> userList)
+            {
+                userLoginView.getUserList(userList);
+            }
+
+            @Override
+            public void onFailure(Call call, HttpException e)
+            {
+                userLoginView.showTip(e.getMessage());
             }
         });
     }

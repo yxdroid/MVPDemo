@@ -10,12 +10,15 @@ package com.yxfang.mvpdemo.model;
 public interface IBaseModel
 {
     // 服务器地址
-    String SERVER_ADDRESS = "http://www.baidu.com";
+    String SERVER_ADDRESS = "http://192.168.1.115:8080";
 
     /*--------------------------user api sets start--------------------------------*/
 
     // 用户登录
-    String USER_LOGIN = "/api/userLogin";
+    String USER_LOGIN = "/api/user/login";
+
+    // 获取用户列表
+    String GET_USER_LIST = "/api/user/getUserList";
 
     /*--------------------------user api sets end--------------------------------*/
 }

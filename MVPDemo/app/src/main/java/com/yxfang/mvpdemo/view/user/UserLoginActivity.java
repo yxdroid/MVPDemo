@@ -7,8 +7,11 @@ import android.widget.EditText;
 
 import com.yxfang.mvpdemo.R;
 import com.yxfang.mvpdemo.bean.common.Result;
+import com.yxfang.mvpdemo.bean.user.User;
 import com.yxfang.mvpdemo.presenter.user.UserLoginPresenter;
 import com.yxfang.mvpdemo.view.base.BaseActivity;
+
+import java.util.List;
 
 import butterknife.Bind;
 import butterknife.OnClick;
@@ -45,7 +48,8 @@ public class UserLoginActivity extends BaseActivity implements IUserLoginView
     @OnClick(R.id.btn_login)
     public void onClick(View view)
     {
-        loginPresenter.login(this, getAccount(), getPwd());
+        //loginPresenter.login(this, getAccount(), getPwd());
+        loginPresenter.getUserList(this);
     }
 
     @Override
@@ -71,5 +75,11 @@ public class UserLoginActivity extends BaseActivity implements IUserLoginView
     {
         super.loadFailure(errorMsg);
         showTip(errorMsg);
+    }
+
+    @Override
+    public void getUserList(Result<List<User>> userList)
+    {
+        showTip(userList.getData().size() + "");
     }
 }

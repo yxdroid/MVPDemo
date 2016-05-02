@@ -56,6 +56,6 @@ public class BasePresenter
      */
     protected void handleOnFailure(IOException e, IBaseView baseView)
     {
-        baseView.loadFailure("网络异常，请稍后再试~~~");
+        baseView.loadFailure("网络异常，请检查网路设置");
     }
 }
