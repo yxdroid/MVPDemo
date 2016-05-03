@@ -87,6 +87,10 @@ public class UserLoginPresenter extends BasePresenter
         });
     }
 
+    /**
+     * 获取用户列表
+     * @param context
+     */
     public void getUserList(Context context) {
         userLoginModel.getUserList(context, new HttpRequestCallback<Result<List<User>>>()
         {

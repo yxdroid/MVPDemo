@@ -67,13 +67,13 @@ public class UserLoginActivity extends BaseActivity implements IUserLoginView
     @Override
     public void loadSuccess(Result result)
     {
-        super.loadSuccess(result);
+        User user = (User) result.getData();
+        showTip(user.getUsername());
     }
 
     @Override
     public void loadFailure(String errorMsg)
     {
-        super.loadFailure(errorMsg);
         showTip(errorMsg);
     }
 

@@ -1,5 +1,8 @@
 package com.yxfang.mvpdemo.utils.http;
 
+import java.net.ConnectException;
+import java.net.SocketTimeoutException;
+
 /**
  * User: yxfang
  * Date: 5/2/16
@@ -49,7 +52,19 @@ public class HttpException
 
     public String getMessage()
     {
-        if (this.code == -1)
+        if (this.code == 0)
+        {
+            if (e instanceof ConnectException)
+            {
+                return "无法连接服务器，请检查网络设置";
+            }
+            else if (e instanceof SocketTimeoutException)
+            {
+                return "服务器连接超时，请稍后再试";
+            }
+            return "网络异常，请检查网络设置";
+        }
+        else if (this.code == -1)
         {
             return "数据异常，请稍后重试";
         }
@@ -59,7 +74,7 @@ public class HttpException
         }
         else
         {
-            return "网络异常，请检查网络设置";
+            return "服务器异常";
         }
     }
 }

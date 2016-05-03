@@ -33,7 +33,7 @@ public class HttpRequestUtil
 
     private static OkHttpClient okHttpClient;
 
-    private HttpHandler httpHandler;
+    private Handler httpHandler;
 
     private Gson gson;
 
@@ -52,7 +52,7 @@ public class HttpRequestUtil
     public HttpRequestUtil()
     {
         okHttpClient = new OkHttpClient();
-        httpHandler = new HttpHandler(Looper.getMainLooper());
+        httpHandler = new Handler(Looper.getMainLooper());
         gson = new Gson();
     }
 
@@ -120,7 +120,7 @@ public class HttpRequestUtil
                     httpResult.callback = callback;
                     httpResult.exception = new HttpException(e);
                     httpResult.call = call;
-                    httpHandler.sendMessage(httpResult.getMessage());
+                    httpHandler.post(new HttpHandler(httpResult));
                 }
             }
 
@@ -135,7 +135,7 @@ public class HttpRequestUtil
                         httpResult.callback = callback;
                         httpResult.response = response.body().string();
                         httpResult.call = call;
-                        httpHandler.sendMessage(httpResult.getMessage());
+                        httpHandler.post(new HttpHandler(httpResult));
                     }
                     else
                     {
@@ -143,28 +143,31 @@ public class HttpRequestUtil
                         httpResult.callback = callback;
                         httpResult.call = call;
                         httpResult.exception = new HttpException(response.code());
-                        httpHandler.handleMessage(httpResult.getMessage());
+                        httpHandler.post(new HttpHandler(httpResult));
                     }
                 }
             }
         };
     }
 
-    class HttpHandler extends Handler
+    class HttpHandler implements Runnable
     {
         public static final int HTTP_SUCCESS = 1;
         public static final int HTTP_FAILURE = 2;
 
-        public HttpHandler(Looper looper)
+        private HttpResult httpResult;
+
+        public HttpHandler(HttpResult httpResult)
         {
-            super(looper);
+            this.httpResult = httpResult;
         }
 
         @Override
-        public void handleMessage(Message msg)
+        public void run()
         {
-            HttpResult httpResult = (HttpResult) msg.obj;
-            if (msg.what == HTTP_SUCCESS)
+            httpResult.callback.onFinish();
+
+            if (httpResult.what == HTTP_SUCCESS)
             {
                 // 当返回的类型是String
                 if (httpResult.callback.type == String.class)
@@ -190,7 +193,6 @@ public class HttpRequestUtil
             {
                 httpResult.callback.onFailure(httpResult.call, httpResult.exception);
             }
-            httpResult.callback.onFinish();
         }
     }
 

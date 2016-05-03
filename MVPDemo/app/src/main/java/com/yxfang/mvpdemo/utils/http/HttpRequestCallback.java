@@ -28,7 +28,7 @@ public abstract class HttpRequestCallback<T>
         Type superclass = subclass.getGenericSuperclass();
         if (superclass instanceof Class)
         {
-            throw new RuntimeException("Missing type parameter.");
+            throw new RuntimeException("Missing type parameter");
         }
         ParameterizedType parameterizedType = (ParameterizedType) superclass;
         return $Gson$Types.canonicalize(parameterizedType.getActualTypeArguments()[0]);
