@@ -29,5 +29,17 @@ public interface IUserLoginView extends IBaseView
      */
     String getPwd();
 
-    void getUserList(Result<List<User>> userList);
+    /**
+     * 登录回调
+     *
+     * @param result
+     */
+    void onLogin(Result<User> result);
+
+    /**
+     * 获取用户列表（只是个案例）
+     *
+     * @param result
+     */
+    void onGetUserList(Result<List<User>> result);
 }

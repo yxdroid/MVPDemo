@@ -75,8 +75,7 @@ public class UserLoginPresenter extends BasePresenter
             @Override
             public void onResponse(Result<User> user)
             {
-                //.loadSuccess(user/);
-                userLoginView.loadSuccess(user);
+                userLoginView.onLogin(user);
             }
 
             @Override
@@ -89,9 +88,11 @@ public class UserLoginPresenter extends BasePresenter
 
     /**
      * 获取用户列表
+     *
      * @param context
      */
-    public void getUserList(Context context) {
+    public void getUserList(Context context)
+    {
         userLoginModel.getUserList(context, new HttpRequestCallback<Result<List<User>>>()
         {
             @Override
@@ -109,7 +110,7 @@ public class UserLoginPresenter extends BasePresenter
             @Override
             public void onResponse(Result<List<User>> userList)
             {
-                userLoginView.getUserList(userList);
+                userLoginView.onGetUserList(userList);
             }
 
             @Override

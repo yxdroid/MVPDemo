@@ -12,6 +12,8 @@ import lombok.Data;
 @Data
 public class Result<T>
 {
+    public static final int RESULT_OK = 200;
+
     private int code;
     private String msg;
     private T data;

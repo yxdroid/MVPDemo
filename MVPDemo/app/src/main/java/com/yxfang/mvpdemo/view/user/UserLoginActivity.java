@@ -48,8 +48,8 @@ public class UserLoginActivity extends BaseActivity implements IUserLoginView
     @OnClick(R.id.btn_login)
     public void onClick(View view)
     {
-        //loginPresenter.login(this, getAccount(), getPwd());
-        loginPresenter.getUserList(this);
+        loginPresenter.login(this, getAccount(), getPwd());
+        //loginPresenter.getUserList(this);
     }
 
     @Override
@@ -65,21 +65,35 @@ public class UserLoginActivity extends BaseActivity implements IUserLoginView
     }
 
     @Override
-    public void loadSuccess(Result result)
+    public void onLogin(Result<User> result)
     {
-        User user = (User) result.getData();
-        showTip(user.getUsername());
+        if (Result.RESULT_OK == result.getCode())
+        {
+            User user = result.getData();
+            showTip(user.getUsername());
+        }
+        else
+        {
+            showTip(result.getMsg());
+        }
+    }
+
+    @Override
+    public void onGetUserList(Result<List<User>> result)
+    {
+        if (Result.RESULT_OK == result.getCode())
+        {
+            showTip(result.getData().size() + "");
+        }
+        else
+        {
+            showTip(result.getMsg());
+        }
     }
 
     @Override
     public void loadFailure(String errorMsg)
     {
         showTip(errorMsg);
-    }
-
-    @Override
-    public void getUserList(Result<List<User>> userList)
-    {
-        showTip(userList.getData().size() + "");
     }
 }
